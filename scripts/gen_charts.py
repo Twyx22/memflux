@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Génère les SVG des benchmarks pour le README (aucune dépendance)."""
+"""Generates benchmark SVG charts for the README (no dependencies)."""
 import csv, os
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "docs", "img")
@@ -60,6 +60,7 @@ def bar_chart(path, title, subtitle, bars, unit="MB"):
     s.append(f'<rect width="{W}" height="{H}" fill="#0d1117"/>')
     s.append(f'<text x="{W/2}" y="22" fill="#e6edf3" font-size="15" text-anchor="middle" font-family="sans-serif" font-weight="600">{title}</text>')
     s.append(f'<text x="{W/2}" y="38" fill="#8b949e" font-size="11" text-anchor="middle" font-family="sans-serif">{subtitle}</text>')
+    s.append(f'<text x="{ML-10}" y="{MT-6}" fill="#8b949e" font-size="10" text-anchor="end" font-family="sans-serif">{unit}</text>')
     for i, (label, before, after) in enumerate(bars):
         cy = MT + (i * 2 + 1) * bh
         wb = before / vmax * PW
@@ -69,10 +70,10 @@ def bar_chart(path, title, subtitle, bars, unit="MB"):
         s.append(f'<rect x="{ML}" y="{cy+bh*0.9:.0f}" width="{wa:.0f}" height="{bh*0.8}" rx="2" fill="#3fb950"/>')
         s.append(f'<text x="{ML+wb+6:.0f}" y="{cy+bh*0.75:.0f}" fill="#c9d1d9" font-size="10" font-family="sans-serif">{before:g}</text>')
         s.append(f'<text x="{ML+wa+6:.0f}" y="{cy+bh*1.7:.0f}" fill="#3fb950" font-size="10" font-weight="600" font-family="sans-serif">{after:g}</text>')
-    s.append(f'<rect x="{ML}" y="{H-6}" width="14" height="4" fill="#8957e5"/>')
-    s.append(f'<text x="{ML+18}" y="{H-2}" fill="#8b949e" font-size="10" font-family="sans-serif">avant memflux</text>')
-    s.append(f'<rect x="{ML+110}" y="{H-6}" width="14" height="4" fill="#3fb950"/>')
-    s.append(f'<text x="{ML+128}" y="{H-2}" fill="#8b949e" font-size="10" font-family="sans-serif">après memflux</text>')
+    s.append(f'<rect x="{ML}" y="{H-8}" width="14" height="4" fill="#8957e5"/>')
+    s.append(f'<text x="{ML+18}" y="{H-4}" fill="#8b949e" font-size="10" font-family="sans-serif">before</text>')
+    s.append(f'<rect x="{ML+90}" y="{H-8}" width="14" height="4" fill="#3fb950"/>')
+    s.append(f'<text x="{ML+108}" y="{H-4}" fill="#8b949e" font-size="10" font-family="sans-serif">after</text>')
     s.append("</svg>")
     with open(path, "w") as f:
         f.write("\n".join(s))
@@ -83,39 +84,39 @@ rss_pts = [(float(r["t_sec"]), float(r["rss_mb"])) for r in rows]
 swap_pts = [(float(r["t_sec"]), float(r["swap_mb"])) for r in rows]
 line_chart(
     os.path.join(OUT, "pageout_timeline.svg"),
-    "Pageout d'un processus de 2 Go dormant",
-    "memfluxd — process_madvise(MADV_PAGEOUT), 2 cycles de working-set",
-    [("RSS (Mo)", "#f85149", rss_pts), ("Swap zram (Mo)", "#3fb950", swap_pts)],
-    "secondes", "Mo")
+    "Pageout of a dormant 2 GiB process",
+    "memfluxd — process_madvise(MADV_PAGEOUT), 2 working-set windows",
+    [("RSS (MB)", "#f85149", rss_pts), ("zram swap (MB)", "#3fb950", swap_pts)],
+    "seconds", "MB")
 
-# ---------------------------------------------------------------- 2. allocateur
+# ---------------------------------------------------------------- 2. allocator
 bar_chart(
     os.path.join(OUT, "allocator_rss.svg"),
-    "Allocateur interposé : RSS après libération",
-    "300 000 blocs de 4 Ko libérés — glibc 1 180 Mo vs memflux-preload 10 Mo",
+    "Interposed allocator: RSS after free",
+    "300,000 × 4 KiB blocks freed — glibc keeps 1,180 MB vs 10 MB",
     [("glibc (malloc)", 1180, 1180), ("memflux-preload", 1186, 10)],
-    "Mo")
+    "MB")
 
-# ---------------------------------------------------------------- 3. récap avant/après
+# ---------------------------------------------------------------- 3. before/after
 bar_chart(
     os.path.join(OUT, "before_after.svg"),
-    "Résumé des gains mesurés",
-    "machine de test : 32 Go RAM, zram, kernel 7.1 — 2 sep 2026",
+    "Measured gains summary",
+    "test machine: 32 GB RAM, zram, kernel 7.1 — Sep 2, 2026",
     [
-        ("Process 2 GB dormeur", 2046, 2),
-        ("App 300K objets libérés", 1180, 10),
-        ("Burst 1.5 GB libéré", 1538, 2),
+        ("Dormant 2 GB process", 2046, 2),
+        ("App freeing 300K objects", 1180, 10),
+        ("Released 1.5 GB burst", 1538, 2),
     ],
-    "Mo RSS")
+    "MB RSS")
 
 # ---------------------------------------------------------------- 4. damon_reclaim
 line_chart(
     os.path.join(OUT, "damon_reclaim.svg"),
-    "damon_reclaim (kdamond noyau) — 1.5 Go dormant",
-    "min_age=10 s, quota 10 ms/s, wmarks 950/900/100 — piloté par memfluxd",
-    [("Swap zram (Mo)", "#3fb950", [(0, 0), (12, 34), (24, 58), (36, 58), (48, 74)])],
-    "secondes", "Mo", ymax=120)
+    "damon_reclaim (kernel kdamond) — 1.5 GiB dormant",
+    "min_age=10 s, quota 10 ms/s, wmarks 950/900/100 — driven by memfluxd",
+    [("zram swap (MB)", "#3fb950", [(0, 0), (12, 34), (24, 58), (36, 58), (48, 74)])],
+    "seconds", "MB", ymax=120)
 
-print("SVG générés dans", os.path.abspath(OUT))
+print("SVGs written to", os.path.abspath(OUT))
 for f in sorted(os.listdir(OUT)):
     print("  ", f)
