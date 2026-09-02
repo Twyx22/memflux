@@ -18,4 +18,4 @@ core.*
 vgcore.*
 
 # logs
-*.log
+*.log*.csv

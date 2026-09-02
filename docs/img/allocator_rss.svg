@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="300" viewBox="0 0 640 300">
+<rect width="640" height="300" fill="#0d1117"/>
+<text x="320.0" y="22" fill="#e6edf3" font-size="15" text-anchor="middle" font-family="sans-serif" font-weight="600">Allocateur interposé : RSS après libération</text>
+<text x="320.0" y="38" fill="#8b949e" font-size="11" text-anchor="middle" font-family="sans-serif">300 000 blocs de 4 Ko libérés — glibc 1 180 Mo vs memflux-preload 10 Mo</text>
+<text x="190" y="124" fill="#c9d1d9" font-size="11" text-anchor="end" font-family="sans-serif">glibc (malloc)</text>
+<rect x="200" y="92" width="378" height="34" rx="2" fill="#8957e5"/>
+<rect x="200" y="130" width="378" height="33.6" rx="2" fill="#3fb950"/>
+<text x="584" y="124" fill="#c9d1d9" font-size="10" font-family="sans-serif">1180</text>
+<text x="584" y="163" fill="#3fb950" font-size="10" font-weight="600" font-family="sans-serif">1180</text>
+<text x="190" y="208" fill="#c9d1d9" font-size="11" text-anchor="end" font-family="sans-serif">memflux-preload</text>
+<rect x="200" y="176" width="380" height="34" rx="2" fill="#8957e5"/>
+<rect x="200" y="214" width="3" height="33.6" rx="2" fill="#3fb950"/>
+<text x="586" y="208" fill="#c9d1d9" font-size="10" font-family="sans-serif">1186</text>
+<text x="209" y="247" fill="#3fb950" font-size="10" font-weight="600" font-family="sans-serif">10</text>
+<rect x="200" y="294" width="14" height="4" fill="#8957e5"/>
+<text x="218" y="298" fill="#8b949e" font-size="10" font-family="sans-serif">avant memflux</text>
+<rect x="310" y="294" width="14" height="4" fill="#3fb950"/>
+<text x="328" y="298" fill="#8b949e" font-size="10" font-family="sans-serif">après memflux</text>
+</svg>
