@@ -1,0 +1,49 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+        build_type: [Release, Debug]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ clang linux-libc-dev
+
+      - name: Configure
+        run: |
+          if [ "${{ matrix.compiler }}" = "gcc" ]; then
+            export CC=gcc CXX=g++
+          else
+            export CC=clang CXX=clang++
+          fi
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+      - name: Build
+        run: cmake --build build -j"$(nproc)"
+
+      - name: Tests
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Smoke test — preload allocator
+        run: |
+          ./build/bench_alloc 2 20000
+          LD_PRELOAD=$PWD/build/libmemflux-preload.so ./build/bench_alloc 2 20000
+        continue-on-error: false
+
+      - name: Smoke test — daemon dry cycle
+        run: |
+          sudo ./build/memfluxd -f -v &
+          sleep 3
+          ./build/memfluxctl status
+          ./build/memfluxctl top 5
