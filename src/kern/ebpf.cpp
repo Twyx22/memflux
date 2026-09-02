@@ -71,7 +71,6 @@ struct fault_val { __u64 minor; };
 std::map<pid_t, uint64_t> drain_faults(){
   std::map<pid_t, uint64_t> out;
   if(!g.map) return out;
-  int fd = bpf_map__fd(g.map);
   struct fault_key key = {}, next = {};
   struct fault_val val = {};
   while(bpf_map__get_next_key(g.map, &key, &next, sizeof(next)) == 0){

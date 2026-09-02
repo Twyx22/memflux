@@ -18,7 +18,14 @@ jobs:
       - name: Install toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake g++ clang linux-libc-dev
+          sudo apt-get install -y cmake g++ clang libbpf-dev libelf-dev linux-libc-dev
+
+      - name: Compile eBPF object
+        run: |
+          # l'objet eBPF est compilé par le build CMake (clang -target bpf)
+          # avec les headers système ; clang sur GH Actions a besoin des
+          # includes asm de la libc
+          echo "compilé par CMake (voir configure)"
 
       - name: Configure
         run: |

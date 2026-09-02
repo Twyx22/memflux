@@ -45,22 +45,30 @@ target_include_directories(memflux_core PUBLIC include)
 target_link_libraries(memflux_core PUBLIC Threads::Threads bpf)
 
 # eBPF : l'objet est compilé si clang est disponible (optionnel au runtime)
+find_package(PkgConfig QUIET)
 find_program(CLANG_BPF clang)
-if(CLANG_BPF)
+if(PKG_CONFIG_FOUND)
+  pkg_check_modules(LIBBPF libbpf)
+endif()
+if(CLANG_BPF AND LIBBPF_FOUND)
   add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/ebpf_access.bpf.o
     COMMAND ${CLANG_BPF} -O2 -g -target bpf -D__TARGET_ARCH_x86
-            -I/usr/include -c ${CMAKE_SOURCE_DIR}/src/kern/ebpf_access.bpf.c
+            -I/usr/include/x86_64-linux-gnu -I/usr/include
+            -c ${CMAKE_SOURCE_DIR}/src/kern/ebpf_access.bpf.c
             -o ${CMAKE_BINARY_DIR}/ebpf_access.bpf.o
     DEPENDS src/kern/ebpf_access.bpf.c
     COMMENT "clang -target bpf: ebpf_access")
   add_custom_target(ebpf_obj ALL
     DEPENDS ${CMAKE_BINARY_DIR}/ebpf_access.bpf.o)
+  target_include_directories(memflux_core PUBLIC ${LIBBPF_INCLUDE_DIRS})
+  target_link_directories(memflux_core PUBLIC ${LIBBPF_LIBRARY_DIRS})
   target_compile_definitions(memflux_core PUBLIC
     EbpfObjectPath="${CMAKE_BINARY_DIR}/ebpf_access.bpf.o")
 else()
-  target_compile_definitions(memflux_core PUBLIC
-    EbpfObjectPath="")
+  # backend eBPF désactivé au runtime (EbpfObjectPath vide)
+  add_library(ebpf_stub OBJECT src/kern/ebpf_stub.cpp)
+  target_compile_definitions(memflux_core PUBLIC EbpfObjectPath="")
 endif()
 
 # ---------------------------------------------------------------------------
