@@ -1,0 +1,21 @@
+# build
+build/
+cmake-build-*/
+out/
+
+# editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# artifacts
+*.o
+*.so
+*.a
+core
+core.*
+vgcore.*
+
+# logs
+*.log
