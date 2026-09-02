@@ -50,6 +50,9 @@ jobs:
 
       - name: Smoke test — daemon dry cycle
         run: |
+          # socket lives in /run/memflux (unit uses ProtectSystem=strict);
+          # create the dir manually in the CI environment
+          sudo mkdir -p /run/memflux
           sudo ./build/memfluxd -f -v &
           sleep 3
           ./build/memfluxctl status
