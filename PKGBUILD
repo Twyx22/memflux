@@ -20,6 +20,12 @@ source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('9e582036710a917a8e702dd9e9323bb9bce1176a5314f8d9c4c96a6ea1258c10')
 install=memflux.install
 
+prepare() {
+  # the GitHub tarball extracts to "memflux" — rename for consistency
+  rm -rf "$srcdir/$pkgname-$pkgver"
+  mv "$srcdir/memflux" "$srcdir/$pkgname-$pkgver"
+}
+
 build() {
   cd "$pkgname-$pkgver"
   cmake -S . -B build \

@@ -19,11 +19,6 @@ pkgver() {
   printf "1.1.0.r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
-prepare() {
-  # nothing to rename: git clone preserves the repo name "memflux"
-  true
-}
-
 build() {
   cd memflux
   cmake -S . -B build \
