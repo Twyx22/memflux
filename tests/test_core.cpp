@@ -42,6 +42,34 @@ static void test_config(){
   Config c;
   c.reload("/nonexistent"); // ne doit pas planter
   assert(c.interval_ms == 1000);
+  assert(c.enable_damon);
+  assert(c.default_mode == "pageout");
+  assert(c.groups.empty());
+}
+static void test_config_groups(){
+  // parser [groups] + default_mode + enable_damon
+  FILE* f = fopen("/tmp/memflux_test.conf", "we");
+  assert(f);
+  fputs("[engine]\ninterval_ms = 500\ndefault_mode = cold\nenable_damon = false\n"
+        "[groups]\n"
+        "group.0.prefix = /system.slice\n"
+        "group.0.weight = 0.3\n"
+        "group.0.mode = cold\n"
+        "group.1.prefix = /user.slice\n"
+        "group.1.weight = 1.5\n"
+        "group.1.mode = pageout\n", f);
+  fclose(f);
+  Config c;
+  c.reload("/tmp/memflux_test.conf");
+  assert(c.interval_ms == 500);
+  assert(!c.enable_damon);
+  assert(c.default_mode == "cold");
+  assert(c.groups.size() == 2);
+  assert(c.groups[0].cgroup_prefix == "/system.slice");
+  assert(c.groups[0].weight == 0.3);
+  assert(c.groups[0].mode == 1);
+  assert(c.groups[1].mode == 0);
+  unlink("/tmp/memflux_test.conf");
 }
 
 int main(){
@@ -51,6 +79,7 @@ int main(){
   test_ws_self();
   test_pidfd();
   test_config();
+  test_config_groups();
   printf("all core tests passed\n");
   return 0;
 }

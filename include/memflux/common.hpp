@@ -63,6 +63,12 @@ std::string fmt_line(A&&... a){
 // ---------------------------------------------------------------- config
 struct PreloadCfg { uint64_t trim_after_mb = 512; uint64_t free_bytes = 256 << 20; };
 
+struct GroupPolicy {
+  std::string cgroup_prefix;
+  double weight = 1.0;
+  int mode = 0; // 0=pageout, 1=cold
+};
+
 struct Config {
   uint32_t interval_ms = 1000;
   double psi_threshold = 0.20;
@@ -75,6 +81,9 @@ struct Config {
   bool enable_heap_trim = true;
   bool enable_cgroup_reclaim = true;
   bool enable_ksm = true;
+  bool enable_damon = true;          // backend DAMON (fallback pagemap auto)
+  std::string default_mode = "pageout"; // "pageout" | "cold"
+  std::vector<GroupPolicy> groups;   // politiques par cgroup
   bool dry_run = false;
 
   PreloadCfg preload;

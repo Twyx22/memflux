@@ -58,4 +58,13 @@ bool ksm_set(const char* name, const std::string& value);
 std::string ksm_get(const char* name);
 } // namespace sysctl
 
+// ---- MGLRU (multi-gen LRU) --------------------------------------------------
+namespace mglru {
+bool available();
+bool enabled();
+bool enable(bool on);            // active les features MGLRU (bitmap 0x7)
+bool set_min_ttl_ms(uint64_t ms);
+uint64_t get_min_ttl_ms();
+} // namespace mglru
+
 } // namespace memflux::kern

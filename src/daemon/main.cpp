@@ -114,6 +114,16 @@ int run_daemon(){
       LOG_INFO("KSM enabled (run=1)");
   }
 
+  if(kern::mglru::available()){
+    if(!kern::mglru::enabled() && kern::mglru::enable(true))
+      LOG_INFO("MGLRU features enabled (0x0007)");
+    // protège le working set des applications récemment actives : min_ttl 2 s
+    if(kern::mglru::set_min_ttl_ms(2000))
+      LOG_INFO("MGLRU min_ttl_ms=2000");
+  } else {
+    LOG_INFO("MGLRU not available on this kernel");
+  }
+
   Engine eng(g_cfg);
   LOG_INFO("memfluxd started, interval=", g_cfg.interval_ms, "ms");
 

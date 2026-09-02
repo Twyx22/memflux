@@ -110,7 +110,31 @@ void Config::reload(const std::string& path){
       else if(k == "enable_heap_trim") enable_heap_trim = parse_bool(v, enable_heap_trim);
       else if(k == "enable_cgroup_reclaim") enable_cgroup_reclaim = parse_bool(v, enable_cgroup_reclaim);
       else if(k == "enable_ksm") enable_ksm = parse_bool(v, enable_ksm);
+      else if(k == "enable_damon") enable_damon = parse_bool(v, enable_damon);
+      else if(k == "default_mode"){
+        std::string t = v; for(auto& ch : t) ch = (char)tolower(ch);
+        default_mode = (t == "cold" || t == "coldonly") ? "cold" : "pageout";
+      }
       else if(k == "dry_run") dry_run = parse_bool(v, dry_run);
+    } else if(section == "groups"){
+      // syntaxe : group.<n>.<field> = value  (n = 0,1,2...)
+      if(k.rfind("group", 0) == 0){
+        // group.N.prefix / group.N.weight / group.N.mode
+        auto dot1 = k.find('.');
+        auto dot2 = k.find('.', dot1 + 1);
+        if(dot2 != std::string::npos){
+          std::string idxs = k.substr(dot1 + 1, dot2 - dot1 - 1);
+          std::string field = k.substr(dot2 + 1);
+          size_t idx = (size_t)parse_u64(idxs, 0);
+          if(groups.size() <= idx) groups.resize(idx + 1);
+          if(field == "cgroup" || field == "prefix") groups[idx].cgroup_prefix = trim(v);
+          else if(field == "weight") groups[idx].weight = parse_dbl(v, 1.0);
+          else if(field == "mode"){
+            std::string t = v; for(auto& ch : t) ch = (char)tolower(ch);
+            groups[idx].mode = (t == "cold") ? 1 : 0;
+          }
+        }
+      }
     } else if(section == "ksm"){
       // géré par le démon directement
     } else if(section == "preload"){
