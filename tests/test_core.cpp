@@ -25,7 +25,7 @@ static void test_meminfo(){
 }
 static void test_ws_self(){
   // working set sur soi-même
-  assert(kern::clear_soft_dirty(getpid()));
+  assert(clear_soft_dirty(getpid()));
   volatile auto* sink = new uint64_t[1024];
   sink[0] = 42;
   auto ws = sample_working_set(getpid());
