@@ -63,8 +63,11 @@ if(CLANG_BPF AND LIBBPF_FOUND)
     DEPENDS ${CMAKE_BINARY_DIR}/ebpf_access.bpf.o)
   target_include_directories(memflux_core PUBLIC ${LIBBPF_INCLUDE_DIRS})
   target_link_directories(memflux_core PUBLIC ${LIBBPF_LIBRARY_DIRS})
+  # chemin de l'objet eBPF surridable pour le packaging (install /usr/lib/memflux)
+  set(MEMFLUX_EBPF_PATH "${CMAKE_INSTALL_PREFIX}/lib/memflux/ebpf_access.bpf.o"
+      CACHE STRING "Installed eBPF object path")
   target_compile_definitions(memflux_core PUBLIC
-    EbpfObjectPath="${CMAKE_BINARY_DIR}/ebpf_access.bpf.o")
+    EbpfObjectPath="${MEMFLUX_EBPF_PATH}")
 else()
   # backend eBPF désactivé au runtime (EbpfObjectPath vide)
   add_library(ebpf_stub OBJECT src/kern/ebpf_stub.cpp)
@@ -97,8 +100,8 @@ set_target_properties(memflux_preload PROPERTIES
 # ---------------------------------------------------------------------------
 # outils de test / démo
 # ---------------------------------------------------------------------------
-add_executable(memhog src/tools/memhog.cpp)
-target_link_libraries(memhog PRIVATE Threads::Threads)
+add_executable(memflux-hog src/tools/memhog.cpp)
+target_link_libraries(memflux-hog PRIVATE Threads::Threads)
 
 add_executable(bench_alloc src/tools/bench_alloc.cpp)
 target_link_libraries(bench_alloc PRIVATE Threads::Threads)
@@ -111,6 +114,6 @@ add_executable(test_core tests/test_core.cpp)
 target_link_libraries(test_core PRIVATE memflux_core)
 add_test(NAME core COMMAND test_core)
 
-install(TARGETS memfluxd memfluxctl memflux_preload memhog bench_alloc
+install(TARGETS memfluxd memfluxctl memflux_preload memflux-hog bench_alloc
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)

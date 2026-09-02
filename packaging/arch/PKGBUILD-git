@@ -1,0 +1,50 @@
+# Maintainer: Twyx22 <matt.sim62@gmail.com>
+# Development version, builds from the latest commit on main.
+pkgname=memflux-git
+pkgver=1.1.0.r$(git ls-remote https://github.com/Twyx22/memflux.git HEAD | cut -c1-8).r0
+pkgrel=1
+pkgdesc="Adaptive memory reclamation for Linux (dev build) — reclaim dormant RAM without killing processes"
+arch=('x86_64')
+url="https://github.com/Twyx22/memflux"
+license=('MIT')
+depends=('glibc' 'systemd')
+makedepends=('cmake' 'gcc' 'clang' 'libbpf' 'libelf' 'linux-headers' 'git')
+provides=('memflux')
+conflicts=('memflux')
+source=("git+https://github.com/Twyx22/memflux.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd memflux
+  printf "1.1.0.r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+prepare() {
+  # nothing to rename: git clone preserves the repo name "memflux"
+  true
+}
+
+build() {
+  cd memflux
+  cmake -S . -B build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DMEMFLUX_EBPF_PATH=/usr/lib/memflux/ebpf_access.bpf.o
+  cmake --build build -j"$(nproc)"
+  ctest --test-dir build --output-on-failure
+}
+
+package() {
+  cd memflux
+  install -Dm755 build/memfluxd  "$pkgdir/usr/bin/memfluxd"
+  install -Dm755 build/memfluxctl "$pkgdir/usr/bin/memfluxctl"
+  install -Dm755 build/memflux-hog "$pkgdir/usr/bin/memflux-hog"
+  install -Dm755 build/bench_alloc "$pkgdir/usr/bin/bench_alloc"
+  install -Dm755 build/libmemflux-preload.so "$pkgdir/usr/lib/libmemflux-preload.so"
+  install -Dm644 build/ebpf_access.bpf.o "$pkgdir/usr/lib/memflux/ebpf_access.bpf.o"
+  install -Dm644 config/memflux.conf "$pkgdir/etc/memflux.conf"
+  install -Dm644 config/memfluxd.service "$pkgdir/usr/lib/systemd/system/memfluxd.service"
+  install -Dm644 packaging/memfluxd.tmpfiles "$pkgdir/usr/lib/tmpfiles.d/memfluxd.conf"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/memflux/README.md"
+  install -Dm644 LICENSE   "$pkgdir/usr/share/licenses/memflux/LICENSE"
+}

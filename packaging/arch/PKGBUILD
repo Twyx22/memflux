@@ -1,0 +1,58 @@
+# Maintainer: Twyx22 <matt.sim62@gmail.com>
+# Contributor: memflux contributors
+
+pkgname=memflux
+pkgver=1.1.0
+pkgrel=1
+pkgdesc="Adaptive memory reclamation for Linux — reclaim dormant RAM without killing processes"
+arch=('x86_64')
+url="https://github.com/Twyx22/memflux"
+license=('MIT')
+depends=('glibc' 'systemd' 'zram-generator')
+makedepends=('cmake' 'gcc' 'clang' 'libbpf' 'libelf' 'linux-headers')
+optdepends=('bpftool: inspect eBPF maps')
+provides=('memflux')
+conflicts=('memflux-git')
+backup=('etc/memflux.conf')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('cc23c26143e62f24913ec0853ed1fee2e80abbcc7e0abe7075c80b4d3b67e7cd')
+install=memflux.install
+
+prepare() {
+  # the GitHub tarball extracts to "memflux" — rename for consistency
+  rm -rf "$srcdir/$pkgname-$pkgver"
+  mv "$srcdir/memflux" "$srcdir/$pkgname-$pkgver"
+}
+
+build() {
+  cd "$pkgname-$pkgver"
+  cmake -S . -B build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DMEMFLUX_EBPF_PATH=/usr/lib/memflux/ebpf_access.bpf.o
+  cmake --build build -j"$(nproc)"
+  ctest --test-dir build --output-on-failure
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+
+  install -Dm755 build/memfluxd  "$pkgdir/usr/bin/memfluxd"
+  install -Dm755 build/memfluxctl "$pkgdir/usr/bin/memfluxctl"
+  install -Dm755 build/memflux-hog "$pkgdir/usr/bin/memflux-hog"
+  install -Dm755 build/bench_alloc "$pkgdir/usr/bin/bench_alloc"
+  install -Dm755 build/libmemflux-preload.so "$pkgdir/usr/lib/libmemflux-preload.so"
+  install -Dm644 build/ebpf_access.bpf.o "$pkgdir/usr/lib/memflux/ebpf_access.bpf.o"
+
+  # config : /etc (backup-able)
+  install -Dm644 config/memflux.conf "$pkgdir/etc/memflux.conf"
+
+  # systemd
+  install -Dm644 config/memfluxd.service "$pkgdir/usr/lib/systemd/system/memfluxd.service"
+  install -Dm644 packaging/memfluxd.tmpfiles "$pkgdir/usr/lib/tmpfiles.d/memfluxd.conf"
+  install -Dm644 packaging/memflux.sysusers  "$pkgdir/usr/lib/sysusers.d/memflux.conf"
+
+  # man page courte + docs
+  install -Dm644 README.md "$pkgdir/usr/share/doc/memflux/README.md"
+  install -Dm644 LICENSE   "$pkgdir/usr/share/licenses/memflux/LICENSE"
+}

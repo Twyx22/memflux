@@ -1,0 +1,15 @@
+post_install() {
+  echo ">>> memflux installed."
+  echo ">>> Start the daemon:"
+  echo ">>>   sudo systemctl enable --now memfluxd"
+  echo ">>> Control:"
+  echo ">>>   memfluxctl status | top | force"
+  echo ">>> Allocator for any app:"
+  echo ">>>   LD_PRELOAD=/usr/lib/libmemflux-preload.so yourapp"
+  echo ">>> Note: memfluxd runs as root (CAP_SYS_ADMIN required for"
+  echo ">>> process_madvise cross-process pageout)."
+}
+
+post_upgrade() {
+  systemctl try-restart memfluxd.service >/dev/null 2>&1 || true
+}

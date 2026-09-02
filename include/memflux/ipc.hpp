@@ -5,7 +5,7 @@
 
 namespace memflux::ipc {
 
-constexpr const char* SOCK = "/tmp/memflux.sock";
+constexpr const char* SOCK = "/run/memflux/memflux.sock";
 
 // requêtes monoligne, réponses monoligne (suffisant, sans dépendance)
 enum Cmd : uint32_t { C_STATUS = 1, C_PAUSE = 2, C_RESUME = 3, C_KICK = 4, C_ADJUST = 5, C_TOP = 6, C_FORCE = 7 };

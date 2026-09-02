@@ -13,6 +13,7 @@ void log_set_level(LogLevel lvl);
 LogLevel log_level();
 void log_msg(LogLevel lvl, const std::string& msg);
 bool log_enabled(LogLevel lvl);
+bool log_initialized();
 
 #define LOG_DEBUG(...) do { if(::memflux::log_enabled(::memflux::LogLevel::Debug)) \
   ::memflux::log_msg(::memflux::LogLevel::Debug, ::memflux::fmt_line(__VA_ARGS__)); } while(0)

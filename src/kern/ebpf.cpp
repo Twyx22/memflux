@@ -66,7 +66,7 @@ void unload(){
 bool loaded(){ return g.obj != nullptr; }
 
 struct fault_key { __u32 pid; };
-struct fault_val { __u64 minor; };
+struct fault_val { __u64 minor; __u32 pad; };
 
 std::map<pid_t, uint64_t> drain_faults(){
   std::map<pid_t, uint64_t> out;

@@ -106,7 +106,10 @@ void handle_client(int cfd, Engine& eng){
 
 int run_daemon(){
   g_cfg = Config::load(g_cfg_path);
-  log_init(g_cfg.log_level, "/var/log/memflux.log");
+  // si aucun fichier de log demandé explicitement (-l), log vers journald/stderr
+  // (log_init a pu être appelé dans main avant le chargement de la config)
+  if(!log_initialized())
+    log_init(g_cfg.log_level);
 
   if(kern::sysctl::ksm_supported()){
     LOG_INFO("KSM support detected");
@@ -157,12 +160,16 @@ int run_daemon(){
 } // namespace
 
 int main(int argc, char** argv){
+  // sous systemd : logs vers journald (stderr) ; en foreground : stderr
+  const char* invoc = getenv("INVOCATION_ID"); // présent uniquement sous systemd
+  if(!invoc) log_init(LogLevel::Info); // stderr, journald le ramassera aussi
   for(int i = 1; i < argc; ++i){
     if(!strcmp(argv[i], "-c") && i + 1 < argc) g_cfg_path = argv[++i];
     else if(!strcmp(argv[i], "-f")) g_cfg_path = "memflux.conf";
+    else if(!strcmp(argv[i], "-l") && i + 1 < argc) log_init(g_cfg.log_level, argv[++i]);
     else if(!strcmp(argv[i], "-v")) log_init(LogLevel::Debug);
     else if(!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")){
-      printf("usage: memfluxd [-c conf] [-f] [-v]\n");
+      printf("usage: memfluxd [-c conf] [-f] [-v] [-l logfile]\n");
       return 0;
     }
   }

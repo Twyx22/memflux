@@ -1,0 +1,3 @@
+# memflux needs CAP_SYS_ADMIN for cross-process process_madvise.
+# Runs as root; no dedicated user account required (service hardening is
+# done in memfluxd.service via capability bounding).

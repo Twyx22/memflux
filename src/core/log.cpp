@@ -11,6 +11,7 @@ std::mutex g_log_mu;
 LogLevel g_level = LogLevel::Info;
 FILE* g_fp = nullptr;
 bool g_own_fp = false;
+bool g_initialized = false;
 } // namespace
 
 void log_init(LogLevel lvl, const std::string& file){
@@ -21,6 +22,7 @@ void log_init(LogLevel lvl, const std::string& file){
     g_fp = fopen(file.c_str(), "a");
     g_own_fp = bool(g_fp);
   }
+  g_initialized = true;
 }
 
 void log_set_level(LogLevel lvl){
@@ -35,6 +37,11 @@ LogLevel log_level(){
 
 bool log_enabled(LogLevel lvl){
   return lvl >= log_level();
+}
+
+bool log_initialized(){
+  std::lock_guard lk(g_log_mu);
+  return g_initialized;
 }
 
 void log_msg(LogLevel lvl, const std::string& msg){

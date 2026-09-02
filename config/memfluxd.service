@@ -1,24 +1,27 @@
 [Unit]
-Description=memflux — optimiseur mémoire adaptatif (pageout sélectif, working-set sampling)
-Documentation=man:memfluxd(8)
+Description=memflux — adaptive memory reclamation daemon (selective pageout, working-set sampling)
+Documentation=https://github.com/Twyx22/memflux
 After=multi-user.target
+Wants=systemd-modules-load.service
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/memfluxd -c /etc/memflux.conf
+ExecStart=/usr/bin/memfluxd -c /etc/memflux.conf
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 RestartSec=5
-# process_madvise(MADV_PAGEOUT) nécessite CAP_SYS_ADMIN
+# cross-process process_madvise(MADV_PAGEOUT) requires CAP_SYS_ADMIN
 AmbientCapabilities=CAP_SYS_ADMIN
-CapabilityBoundingSet=CAP_SYS_ADMIN
-# /proc/pagemap nécessite un accès privilégié sur les autres processus
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_SYS_PTRACE CAP_DAC_OVERRIDE
+# /proc/pagemap of other processes requires privileged access
 ProtectSystem=strict
 ReadWritePaths=/var/log /run
 PrivateTmp=no
-ProtectHome=yes
-NoNewPrivileges=no
+ProtectHome=read-only
+NoNewPrivileges=yes
 OOMScoreAdjust=-500
+# soft realtime priority for the 1 Hz cycle (not latency-critical itself)
+Nice=-5
 
 [Install]
 WantedBy=multi-user.target

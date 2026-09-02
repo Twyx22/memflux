@@ -1,0 +1,2 @@
+# memflux runtime directories
+d /run/memflux 0755 root root -
