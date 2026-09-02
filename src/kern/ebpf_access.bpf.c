@@ -13,7 +13,6 @@ struct fault_key { __u32 pid; };
 
 struct fault_val {
   __u64 minor;       // minor faults (page Fault sur address)
-  __u32 pad;
 };
 
 struct {

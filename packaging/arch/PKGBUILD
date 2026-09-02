@@ -15,7 +15,9 @@ provides=('memflux')
 conflicts=('memflux-git')
 backup=('etc/memflux.conf')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('cc23c26143e62f24913ec0853ed1fee2e80abbcc7e0abe7075c80b4d3b67e7cd')
+# NOTE: GitHub release tarballs embed mtimes and are not byte-reproducible;
+# update this checksum on each version bump (makepkg prints the mismatch).
+sha256sums=('6938b43616ec5e451d2544c31493def3b7df0e6e4f9c6b587bbf85f859f30d92')
 install=memflux.install
 
 prepare() {
